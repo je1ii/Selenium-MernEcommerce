@@ -47,23 +47,33 @@ async function testDeleteProduct(driver, productTitle) {
         await driver.get(urls.adminDashboard);
 
         const productRowXpath = `//div[@data-testid="admin-product-row"][descendant::*[normalize-space()="${productTitle}"]]`;
-        
         const row = await driver.wait(
             until.elementLocated(By.xpath(productRowXpath)), 
             10000,
             `Could not find admin row for: ${productTitle}`
         );
 
-        const deleteBtn = await row.findElement(By.css("[data-testid='delete-product']"));
+        const rowText = await row.getText();
         
+        if (rowText.includes("Un-delete")) {
+            console.log(`Product "${productTitle}" was already deleted. Resetting state...`);
+            
+            const unDeleteBtn = await row.findElement(By.xpath(".//button[contains(., 'Un-delete')]"));
+            await driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", unDeleteBtn);
+            await unDeleteBtn.click();
+            
+            await driver.wait(until.elementLocated(By.css("[data-testid='delete-product']")), 5000);
+            await driver.sleep(500);
+        }
+
+        const deleteBtn = await row.findElement(By.css("[data-testid='delete-product']"));
         await driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", deleteBtn);
-        await driver.sleep(500); 
         await deleteBtn.click();
 
-        const unDeleteBtn = await driver.wait(
+        const finalUnDeleteBtn = await driver.wait(
             until.elementLocated(By.xpath(`${productRowXpath}//button[contains(., 'Un-delete')]`)), 
             8000,
-            "ASSERTION FAILED: 'Un-delete' button did not appear."
+            "ASSERTION FAILED: 'Un-delete' button did not appear after final click."
         );
 
         console.log(`ASSERTION PASSED: "${productTitle}" deleted successfully.`);
@@ -130,6 +140,7 @@ async function testAddNewProduct(driver) {
         await submitBtn.click();
 
         await driver.wait(until.urlContains('/admin/dashboard'), 10000);
+        
         console.log(`ASSERTION PASSED: Product "${data.title}" added successfully.`);
 
     } catch (error) {
@@ -201,6 +212,9 @@ async function testUpdateProductName(driver, productTitle, expectedBrand) {
         assert.strictEqual(alertText, messages.updateProduct, `EXPECTED: "${messages.updateProduct}", GOT: "${alertText}"`);
 
         await driver.wait(until.urlContains('/admin/dashboard'), 10000);
+        const currentUrl = await driver.getCurrentUrl();
+                        
+        assert.strictEqual(currentUrl, urls.adminDashboard, 'ERROR: Final URL does not match the Admin Dashboard');
         
         await driver.sleep(500); 
         await filterProducts(driver, expectedBrand);
