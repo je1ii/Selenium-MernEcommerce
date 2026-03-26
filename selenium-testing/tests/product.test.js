@@ -573,7 +573,7 @@ async function testEmptyCheckoutFormValidation(driver) {
 
 async function testInvalidCheckoutForm(driver) {
     try {
-        console.log("--- ATTEMPT: Testing Invalid Shipping Information (Pattern/Length) ---");
+        console.log("--- ATTEMPT: Testing Invalid Shipping Information ---");
 
         if (!(await driver.getCurrentUrl()).includes('/checkout')) {
             const checkoutBtn = await driver.wait(until.elementLocated(By.xpath("//a[normalize-space()='Checkout']")), 5000);
@@ -584,7 +584,10 @@ async function testInvalidCheckoutForm(driver) {
         const invalidFields = [
             { label: "Type", value: address.invalid.type, xpath: "//input[contains(@placeholder, 'Home')]" },
             { label: "Street", value: address.invalid.street, xpath: "//p[text()='Street']/following-sibling::div//input" },
+            { label: "Country", value: address.invalid.country, xpath: "//p[text()='Country']/following-sibling::div//input" },
             { label: "Phone", value: address.invalid.phone, xpath: "//p[text()='Phone Number']/following-sibling::div//input" },
+            { label: "City", value: address.invalid.city, xpath: "//p[text()='City']/following-sibling::div//input" },
+            { label: "State", value: address.invalid.state, xpath: "//p[text()='State']/following-sibling::div//input" },
             { label: "Postal", value: address.invalid.postal, xpath: "//p[text()='Postal Code']/following-sibling::div//input" }
         ];
 
@@ -592,11 +595,12 @@ async function testInvalidCheckoutForm(driver) {
             const element = await driver.wait(until.elementLocated(By.xpath(field.xpath)), 5000);
             await element.sendKeys(Key.CONTROL, "a", Key.DELETE); 
             await element.sendKeys(field.value);
-            console.log(`Inputted invalid ${field.label}: ${field.value}`);
         }
 
         const addAddressBtn = await driver.wait(until.elementLocated(By.xpath("//button[text()='add']")), 5000);
         await addAddressBtn.click();
+
+        await driver.sleep(1000);
         
         const errorElements = await driver.wait(
             until.elementsLocated(By.xpath("//p[contains(@class, 'Mui-error') or contains(@class, 'MuiFormHelperText-root')]")), 

@@ -34,6 +34,13 @@ npm install --legacy-peer-deps
 - unzip user.collections
 - import mern.users in users collections
 
+## Run Selenium Testing
+- open a command terminal and go to the directory of "tests" folder in "selenium-testing" folder
+- run the test scripts, for example:
+
+```bash
+node auth.test.js
+```
 
 ## IF RUNNING THE WEBSITE HAVE VERSION CONFLICTS:
 
